@@ -27,13 +27,13 @@ unsigned char header[54] = {
 
 Testbench::Testbench(sc_module_name n)
     : sc_module(n), output_rgb_raw_data_offset(54) {
-  SC_THREAD(do_sobel);
+  SC_THREAD(do_Gaussian);
   sensitive << i_clk.pos();
   dont_initialize();
 }
 
 //用於讀取 BMP 圖像文件並處理相關資訊，如圖像寬度、高度、位元深度等。
-int co=1;
+
 int Testbench::read_bmp(string infile_name) {
   FILE *fp_s = NULL; // source file handler
   fp_s = fopen(infile_name.c_str(), "rb");
@@ -126,25 +126,34 @@ int Testbench::write_bmp(string outfile_name) {
 
 //用於在 BMP 圖像上進行邊緣檢測並產生結果。
 
-void Testbench::do_sobel() {
-  int x, y, v, u;        // for loop counter
+void Testbench::do_Gaussian() {
+  int x, y, v, u=0,co=1;       // for loop counter
   unsigned char R, G, B; // color of R, G, B
-  int adjustX, adjustY, xBound, yBound;
+  // int adjustX, adjustY, xBound, yBound;
+  int  adjustY, yBound;
   int total;
 
   o_rst.write(false);
   o_rst.write(true);
-  for (y = 0; y != height; ++y) {//height 和 width 分別是輸入影像的高度和寬度
-    for (x = 0; x != width; ++x) {
-      adjustX = (MASK_X % 2) ? 1 : 0; // 1
+  for (y = 0; y != height; ++y) {//height 和 width 分別是輸入影像的高度和寬度，取資料一開始的位置
+    for (x = -2; x != width + 2; ++x) {
+      //adjustX = (MASK_X % 2) ? 1 : 0; // 1
       adjustY = (MASK_Y % 2) ? 1 : 0; // 1
-      xBound = MASK_X / 2;            // 1
+      //xBound = MASK_X / 2;            // 1
       yBound = MASK_Y / 2;            // 1
 
-      for (v = -yBound; v != yBound + adjustY; ++v) {   //-1, 0, 1
-        for (u = -xBound; u != xBound + adjustX; ++u) { //-1, 0, 1
+      //取5*5個
+       for (v = -yBound; v != yBound + adjustY; ++v) {   //-2, -1, 0, 1, 2
+        // for (u = -xBound; u != xBound + adjustX; ++u) { //-2, -1, 0, 1, 2
           if (x + u >= 0 && x + u < width && y + v >= 0 && y + v < height) {//判斷需不需要padding?不需padding的話
+          // if (x + u >= 0 && x + u < width ) {
             //從輸入影像中讀取適應性區域內每個像素的 R、G 和 B 通道的值，通過將 source_bitmap 指標設置為適當的位置，以及計算適當的偏移量，可以讀取到適應性區域內每個像素的值。
+            // R = *(source_bitmap +
+            //       bytes_per_pixel * (width * (y + v) + (x + u)) + 2);
+            // G = *(source_bitmap +
+            //       bytes_per_pixel * (width * (y + v) + (x + u)) + 1);
+            // B = *(source_bitmap +
+            //       bytes_per_pixel * (width * (y + v) + (x + u)) + 0);
             R = *(source_bitmap +
                   bytes_per_pixel * (width * (y + v) + (x + u)) + 2);
             G = *(source_bitmap +
@@ -160,21 +169,53 @@ void Testbench::do_sobel() {
           o_g.write(G);
           o_b.write(B);
           wait(1); //emulate channel delay
-        }
+        // }
       }
       cout << co << endl;
       co++;
-      if(i_result.num_available()==0) wait(i_result.data_written_event());
-      total = i_result.read();
-      //cout << "Now at " << sc_time_stamp() << endl; //print current sc_time
+      // cout << i_result.num_available() << endl;
 
       
-        *(target_bitmap + bytes_per_pixel * (width * y + x) + 2) = total;
-        *(target_bitmap + bytes_per_pixel * (width * y + x) + 1) = total;
-        *(target_bitmap + bytes_per_pixel * (width * y + x) + 0) = total;
-        //+2 表示紅色通道的偏移量。
-        //+1 表示綠色通道的偏移量。
-        //+0 表示藍色通道的偏移量。
+        if(i_result.num_available()==0) {
+          // cout << "wait 1*5 ok" << endl;
+          wait(i_result.data_written_event());
+        
+        }
+      
+        total = i_result.read();
+        //cout << "Now at " << sc_time_stamp() << endl; //print current sc_time
+
+        if(x >= 2 ){
+          *(target_bitmap + bytes_per_pixel * (width * y + x - 2) + 2) = total;
+          *(target_bitmap + bytes_per_pixel * (width * y + x - 2) + 1) = total;
+          *(target_bitmap + bytes_per_pixel * (width * y + x - 2) + 0) = total;
+        }
+        else{
+
+        }
+        
+          // *(target_bitmap + bytes_per_pixel * (width * y + x) + 2) = total;
+          // *(target_bitmap + bytes_per_pixel * (width * y + x) + 1) = total;
+          // *(target_bitmap + bytes_per_pixel * (width * y + x) + 0) = total;
+            
+      
+
+      // if(i_result.num_available()==0) {
+      //   cout << "wait 1*5 ok" << endl;
+      //   wait(i_result.data_written_event());
+        
+      // }
+      
+      // total = i_result.read();
+      // //cout << "Now at " << sc_time_stamp() << endl; //print current sc_time
+
+      
+      //   *(target_bitmap + bytes_per_pixel * (width * y + x) + 2) = total;
+      //   *(target_bitmap + bytes_per_pixel * (width * y + x) + 1) = total;
+      //   *(target_bitmap + bytes_per_pixel * (width * y + x) + 0) = total;
+        // +2 表示紅色通道的偏移量。
+        // +1 表示綠色通道的偏移量。
+        // +0 表示藍色通道的偏移量。
     }
   }
   sc_stop();

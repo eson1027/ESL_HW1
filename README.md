@@ -1,3 +1,3 @@
 # gaussian_fifo
 
-gaussian filter module with FIFO interfaces.
+Using buffer to reduce data transfer.

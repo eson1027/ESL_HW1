@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 # Define the project name of these source code
-project (sobel)
+project (gaussian)
 
 # Define the C++ standard -std=c++17
 # This is required to match the systemc installed with Ubuntu
@@ -15,18 +15,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D CLOCK_PERIOD=1.0")
 
 # Define the executable name and its source code
 file(GLOB SRC "*.cpp")
-add_executable(sobel ${SRC})
+add_executable(gaussian ${SRC})
 
 # Define the used libraries of the executable, Equal to -l flags of g++
 # In here, the libraries are given in apsolute path. hence no needs for -L
 # flag
-target_link_libraries(sobel systemc)
+target_link_libraries(gaussian systemc)
 
-# Add test sobel filter command
+# Add test gaussian filter command
 set(OUT_FILE "out.bmp")
 add_custom_command(OUTPUT ${OUT_FILE}
-	COMMAND ./sobel ../peppers_color_noise.bmp ./${OUT_FILE}
-	DEPENDS sobel
+	COMMAND ./gaussian ../mandril_color_noise.bmp ./${OUT_FILE}
+	DEPENDS gaussian
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}	
 )
 add_custom_target(run 
@@ -35,7 +35,7 @@ add_custom_target(run
 
 # Compare output & golden
 add_custom_target(check
-	COMMAND diff -s ${CMAKE_BINARY_DIR}/${OUT_FILE} golden/peppers_color_noise_gaussian.bmp
+	COMMAND diff -s ${CMAKE_BINARY_DIR}/${OUT_FILE} golden/mandril_color_noise_gaussian.bmp
 	DEPENDS run
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}	
 )
