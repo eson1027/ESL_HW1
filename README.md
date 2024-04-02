@@ -1,1 +1,3 @@
-# ESL_HW1
+# gaussian_fifo
+
+gaussian filter module with FIFO interfaces.
