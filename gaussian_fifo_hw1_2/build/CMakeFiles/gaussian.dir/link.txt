@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -Wall -D CLOCK_PERIOD=1.0 CMakeFiles/gaussian.dir/GaussianFilter.cpp.o CMakeFiles/gaussian.dir/Testbench.cpp.o CMakeFiles/gaussian.dir/main.cpp.o -o gaussian  -lsystemc 
