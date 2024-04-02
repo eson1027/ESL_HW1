@@ -1,0 +1,1 @@
+/usr/bin/c++  -O3 -Wall -D CLOCK_PERIOD=1.0 CMakeFiles/sobel.dir/SobelFilter.cpp.o CMakeFiles/sobel.dir/Testbench.cpp.o CMakeFiles/sobel.dir/main.cpp.o -o sobel  -lsystemc 
